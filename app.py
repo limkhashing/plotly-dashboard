@@ -10,9 +10,16 @@ from flask import Flask
 from plotly.subplots import make_subplots
 
 df = pd.read_excel('./data/SIP Project.xlsx')
+
+# convert to readable date format
 df['Delivery Date'] = df['Delivery Date'].dt.strftime('%d/%m/%Y')
 df['Due Date'] = df['Due Date'].dt.strftime('%d/%m/%Y')
+
+# create another column to for amount for calculation
+# but do not show it out in dashboard
 df['Float Amount (MYR)'] = df['Amount (MYR)']
+
+# convert Amount (MYR) to 0.2 floating point and string format
 df['Amount (MYR)'] = df['Amount (MYR)'].map('{:,.2f}'.format)
 
 # print the dataframe for analysis first
@@ -121,10 +128,12 @@ def generate_bar_chart(df_filtered):
 
 def generate_pie_chart(df_filtered):
 
+    # find all the occurences for each unique value in delivery port
     delivery_port_occurences = []
     for value in df_filtered['Delivery Port'].unique():
         delivery_port_occurences.append(df_filtered[df_filtered['Delivery Port'] == value].shape[0])
 
+    # find all the occurences for each unique value in loading port
     loading_port_occurences = []
     for value in df_filtered['Loading Port'].unique():
         loading_port_occurences.append(df_filtered[df_filtered['Loading Port'] == value].shape[0])
@@ -132,27 +141,26 @@ def generate_pie_chart(df_filtered):
     delivery_labels = df['Delivery Port'].unique()
     loading_labels = df['Loading Port'].unique()
 
-
-    fig = make_subplots(rows=1, cols=2, specs=[[{'type': 'domain'}, {'type': 'domain'}]])
-    fig.add_trace(go.Pie(
+    figure = make_subplots(rows=1, cols=2, specs=[[{'type': 'domain'}, {'type': 'domain'}]])
+    figure.add_trace(go.Pie(
         labels=delivery_labels,
         values=delivery_port_occurences,
         name="Delivery Port",
         textinfo='label+percent'), 1, 1)
-    fig.add_trace(go.Pie(
+    figure.add_trace(go.Pie(
         labels=loading_labels,
         values=loading_port_occurences,
         name="Loading Port",
         textinfo='label+percent'), 1, 2)
 
     # Use `hole` to create a donut-like pie chart
-    fig.update_traces(hole=.4, hoverinfo="label+percent+name")
-    fig.update_layout(title_text="Pie Chart - Comparison between Delivery Port and Loading Port")
+    figure.update_traces(hole=.4, hoverinfo="label+percent+name")
+    figure.update_layout(title_text="Pie Chart - Comparison between Delivery Port and Loading Port")
 
     return html.Div(
         dcc.Graph(
             id='pie chart',
-            figure=fig
+            figure=figure
         )
     )
 
@@ -161,6 +169,7 @@ app.layout = html.Div(children=[
 
     html.Link(rel='shortcut icon', href='./assets/favicon.ico'),
 
+    # header
     html.Div([
         html.Img(
             src="https://upload.wikimedia.org/wikipedia/en/thumb/b/be/Petronas_2013_logo.svg/1200px-Petronas_2013_logo.svg.png",
@@ -173,8 +182,10 @@ app.layout = html.Div(children=[
         ),
     ], id="header", className='row', style={'marginBottom':'15px'}),
 
+    # main body
     html.Div(
         [
+            # selection on left side
             html.Div(
                 [
                     html.Div([
@@ -237,6 +248,7 @@ app.layout = html.Div(children=[
                 ],
                 className="pretty_container four columns"
             ),
+            # info card on right side
             html.Div(
                 [
                     html.Div(
@@ -301,6 +313,7 @@ app.layout = html.Div(children=[
         ],
         className="row"
     ),
+    # charts on bottom
     html.Div(
         [
             html.Div(id='graph_chart', className="pretty_container twelve columns"),
@@ -336,6 +349,7 @@ app.layout = html.Div(children=[
     [Input('dropdown_delivery', 'value'), Input('dropdown_loading', 'value')]
 )
 def update_pie_chart(delivery_value, loading_value):
+    # always copy the original data so in case you mess up you still can revert
     df_filtered = df.copy()
     if delivery_value == 'ALL' and loading_value == 'ALL':
         return generate_pie_chart(df_filtered)
@@ -379,7 +393,6 @@ def update_bar_chart(delivery_value, loading_value):
         return generate_bar_chart(df_filtered)
 
 
-
 @app.callback(
     Output('graph_chart', 'children'),
     [Input('dropdown_delivery', 'value'),  Input('dropdown_loading', 'value')]
@@ -400,25 +413,31 @@ def update_graph_chart(delivery_value, loading_value):
                Output('loading_port_text', 'children'), Output('delivery_date_text', 'children')],
               [Input('dropdown_delivery', 'value'),  Input('dropdown_loading', 'value')])
 def update_info_card(delivery_value, loading_value,):
-    # if select all, return original data highest value
+    # if select all, return original data highest value by using Float Amount (MYR) column
     if delivery_value == 'ALL' and loading_value == 'ALL':
         df_filtered = df.loc[df['Float Amount (MYR)'].idxmax()]
+
+        # extract the values from the highest row
         highest_amount = df_filtered['Amount (MYR)']
         delivery_port = df_filtered['Delivery Port']
         loading_port = df_filtered['Loading Port']
         delivery_date = df_filtered['Delivery Date']
         return highest_amount, loading_port, delivery_port , delivery_date
     else:
+        # create blank value in case it could not find match delivery and loading port
         highest_amount = ''
         delivery_port = ''
         loading_port = ''
         delivery_date = ''
+
         df_filtered = df.copy()
 
         if delivery_value != 'ALL':
             df_filtered = df_filtered.loc[df_filtered["Delivery Port"] == delivery_value]
         if loading_value != 'ALL':
             df_filtered = df_filtered.loc[df_filtered["Loading Port"] == loading_value]
+
+        # if dataframe is not empty, we proceed to extract the values from the highest row
         if not df_filtered.empty:
             df_filtered = df_filtered.loc[df_filtered['Float Amount (MYR)'].idxmax()]
             highest_amount = df_filtered['Amount (MYR)']

@@ -43,7 +43,7 @@ layout = dict(
     legend=dict(font=dict(size=10), orientation='h'),
 )
 
-server = Flask(__name__, static_folder='assets')
+server = Flask(__name__, static_folder='./assets')
 app = dash.Dash(__name__, server=server)
 
 colors = {
@@ -176,11 +176,11 @@ app.layout = html.Div(children=[
             className='one columns'
         ),
         html.Div(
-            style={'text-align': 'center', }, children=[
+            style={'textAlign': 'center', }, children=[
                 html.H2('Energy and Gas Trading')
             ], className='twelve columns'
         ),
-    ], id="header", className='row', style={'marginBottom':'15px'}),
+    ], id="header", className='row', style={'marginBottom': '15px'}),
 
     # main body
     html.Div(
@@ -339,7 +339,7 @@ app.layout = html.Div(children=[
     id="mainContainer",
     style={
         "display": "flex",
-        "flex-direction": "column"
+        "flexDirection": "column"
     }
 )
 
@@ -448,4 +448,8 @@ def update_info_card(delivery_value, loading_value,):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    # Debug/Development
+    # app.run_server(debug=True)
+    # Production
+    from waitress import serve
+    serve(server, host="0.0.0.0", port=8080)

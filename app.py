@@ -32,10 +32,10 @@ layout = dict(
     autosize=True,
     automargin=True,
     margin=dict(
-        l=30,
-        r=30,
-        b=20,
-        t=40
+        left=30,
+        right=30,
+        bottom=20,
+        top=40
     ),
     hovermode="closest",
     plot_bgcolor="#F9F9F9",
@@ -95,9 +95,11 @@ def generate_graph_chart(df_filtered):
         dcc.Graph(
             id='graph chart',
             figure=go.Figure(data=[
-                go.Scatter(x=df_filtered['Delivery Date'],
-                       y=df_filtered['Float Amount (MYR)'],
-                       marker=dict(color=colors['petronas_color']))],
+                go.Scatter(
+                    x=df_filtered['Delivery Date'],
+                    y=df_filtered['Float Amount (MYR)'],
+                    marker=dict(color=colors['petronas_color']))
+            ],
                 layout=go.Layout(
                     title='Graph Chart - Highest Amount Paid',
                     xaxis={"title": "Delivery Date"},
@@ -127,7 +129,6 @@ def generate_bar_chart(df_filtered):
 
 
 def generate_pie_chart(df_filtered):
-
     # find all the occurences for each unique value in delivery port
     delivery_port_occurences = []
     for value in df_filtered['Delivery Port'].unique():
@@ -306,7 +307,7 @@ app.layout = html.Div(children=[
                     ),
 
                     html.Div(id='table', className="pretty_container"),
-                 ],
+                ],
                 id="rightCol",
                 className="eight columns"
             )
@@ -334,8 +335,7 @@ app.layout = html.Div(children=[
         ],
         className='row'
     ),
-
-], # end html body
+],  # end html body
     id="mainContainer",
     style={
         "display": "flex",
@@ -379,7 +379,7 @@ def update_table(delivery_value, loading_value):
 
 @app.callback(
     Output('bar_chart', 'children'),
-    [Input('dropdown_delivery', 'value'),  Input('dropdown_loading', 'value')]
+    [Input('dropdown_delivery', 'value'), Input('dropdown_loading', 'value')]
 )
 def update_bar_chart(delivery_value, loading_value):
     df_filtered = df.copy()
@@ -395,7 +395,7 @@ def update_bar_chart(delivery_value, loading_value):
 
 @app.callback(
     Output('graph_chart', 'children'),
-    [Input('dropdown_delivery', 'value'),  Input('dropdown_loading', 'value')]
+    [Input('dropdown_delivery', 'value'), Input('dropdown_loading', 'value')]
 )
 def update_graph_chart(delivery_value, loading_value):
     df_filtered = df.copy()
@@ -411,8 +411,8 @@ def update_graph_chart(delivery_value, loading_value):
 
 @app.callback([Output('highest_amount_text', 'children'), Output('delivery_port_text', 'children'),
                Output('loading_port_text', 'children'), Output('delivery_date_text', 'children')],
-              [Input('dropdown_delivery', 'value'),  Input('dropdown_loading', 'value')])
-def update_info_card(delivery_value, loading_value,):
+              [Input('dropdown_delivery', 'value'), Input('dropdown_loading', 'value')])
+def update_info_card(delivery_value, loading_value, ):
     # if select all, return original data highest value by using Float Amount (MYR) column
     if delivery_value == 'ALL' and loading_value == 'ALL':
         df_filtered = df.loc[df['Float Amount (MYR)'].idxmax()]
@@ -422,7 +422,7 @@ def update_info_card(delivery_value, loading_value,):
         delivery_port = df_filtered['Delivery Port']
         loading_port = df_filtered['Loading Port']
         delivery_date = df_filtered['Delivery Date']
-        return highest_amount, loading_port, delivery_port , delivery_date
+        return highest_amount, loading_port, delivery_port, delivery_date
     else:
         # create blank value in case it could not find match delivery and loading port
         highest_amount = ''
@@ -452,5 +452,6 @@ if __name__ == '__main__':
     # app.run_server(debug=True)
     # Production
     from gevent.pywsgi import WSGIServer
-    http_server = WSGIServer(('', 5000), server)
+
+    http_server = WSGIServer(('', 8080), server)
     http_server.serve_forever()

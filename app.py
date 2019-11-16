@@ -451,5 +451,6 @@ if __name__ == '__main__':
     # Debug/Development
     # app.run_server(debug=True)
     # Production
-    from waitress import serve
-    serve(server, host="0.0.0.0", port=8080)
+    from gevent.pywsgi import WSGIServer
+    http_server = WSGIServer(('', 5000), server)
+    http_server.serve_forever()

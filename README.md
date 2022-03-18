@@ -4,3 +4,14 @@
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/limkhashing/plotly-dashboard.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/limkhashing/plotly-dashboard/context:python)
 
 A simple dashboard built by using plotly
+
+![Dashboard](./dashboard.png)
+
+---
+![Graph Chart](./graph_chart.png)
+
+---
+![Bar Chart](./bar_chart.png)
+
+---
+![Pie Chart](./pie_chart.png)
